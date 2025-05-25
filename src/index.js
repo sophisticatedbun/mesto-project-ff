@@ -51,7 +51,7 @@ const validationConfig = {
 }
 
 const renderLoading = (isLoading, button) => {
-  if(isLoading) {
+  if (isLoading) {
     button.textContent = 'Сохранение...';
   }
   else {
