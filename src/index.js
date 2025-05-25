@@ -21,17 +21,20 @@ const editPopup = document.querySelector('.popup_type_edit');
 const editForm = document.forms['edit-profile'];
 const nameInput = document.querySelector('.popup__input_type_name');
 const descriptionInput = document.querySelector('.popup__input_type_description');
+const editPopupButton = editPopup.querySelector('.popup__button');
 
 //Элементы попапа редактирования аватара
 const editAvatarPopup = document.querySelector('.popup_type_edit_avatar');
 const editAvatarForm = document.forms['edit-avatar'];
 const avatarInput = document.querySelector('.popup__input_type_avatar');
+const editAvatarPopupButton = editAvatarPopup.querySelector('.popup__button')
 
 //Элементы попапа добавления карточки
 const addCardPopup = document.querySelector('.popup_type_new-card');
 const addCardForm = document.forms['new-place'];
 const placeNameInput = document.querySelector('.popup__input_type_card-name');
 const cardImageInput = document.querySelector('.popup__input_type_url');
+const addCardPopupButton = addCardPopup.querySelector('.popup__button')
 
 //Элементы попапа с увеличенным изобржением
 const imageZoomPopup = document.querySelector('.popup_type_image');
@@ -47,8 +50,14 @@ const validationConfig = {
     errorClass: 'popup__error_visible'
 }
 
-const buttonText = 'Сохранить';
-const loadingButtonText = 'Сохранение...';
+const renderLoading = (isLoading, button) => {
+  if(isLoading) {
+    button.textContent = 'Сохранение...';
+  }
+  else {
+    button.textContent = 'Сохранить';
+  }
+}
 
 editButton.addEventListener('click', function () {
     clearValidation(editForm, validationConfig);
@@ -58,8 +67,8 @@ editButton.addEventListener('click', function () {
 });
 
 profileImage.addEventListener('click', function () {
-    clearValidation(editAvatarForm, validationConfig);
     avatarInput.value = '';
+    clearValidation(editAvatarForm, validationConfig);
     openModal(editAvatarPopup);
 });
 
@@ -87,8 +96,7 @@ enableValidation(validationConfig);
 function handleEditFormSubmit(event) {
     event.preventDefault();
 
-    const popupButton = editPopup.querySelector('.popup__button');
-    popupButton.textContent = loadingButtonText;
+    renderLoading(true, editPopupButton);
     editProfile(nameInput.value, descriptionInput.value)
         .then((res) => {
             profileTitle.textContent = res.name;
@@ -100,15 +108,14 @@ function handleEditFormSubmit(event) {
             console.error(err);
         })
         .finally(() => {
-           popupButton.textContent = buttonText;
+            renderLoading(false, editPopupButton);
         })
 }
 
 function handleEditAvatarFormSubmit(event) {
     event.preventDefault();
 
-    const popupButton = editAvatarPopup.querySelector('.popup__button');
-    popupButton.textContent = loadingButtonText;
+    renderLoading(true, editAvatarPopupButton);
     updateAvatar(avatarInput.value)
         .then((res) => {
             profileImage.style.backgroundImage = `url(${res.avatar})`;
@@ -119,15 +126,14 @@ function handleEditAvatarFormSubmit(event) {
             console.error(err)
         })
         .finally(() => {
-           popupButton.textContent = buttonText;
+            renderLoading(false, editAvatarPopupButton);
         })
 }
 
 function handleAddCardSubmit(event) {
     event.preventDefault();
-    
-    const popupButton = addCardPopup.querySelector('.popup__button');
-    popupButton.textContent = loadingButtonText;
+
+    renderLoading(true, addCardPopupButton);
     addNewCard(placeNameInput.value, cardImageInput.value)
         .then(card => {
             const newCard = createCard(card, deleteCardHandler, likeHandler, imageClickHandler, userId);
@@ -138,8 +144,8 @@ function handleAddCardSubmit(event) {
         .catch(error => {
             console.error(error);
         })
-         .finally(() => {
-           popupButton.textContent = buttonText;
+        .finally(() => {
+            renderLoading(false, addCardPopupButton);
         })
 }
 
@@ -159,6 +165,7 @@ function deleteCardHandler(cardElement, cardId) {
 
 function imageClickHandler(image, caption) {
     imagePopup.src = image;
+    imagePopup.alt = caption;
     imageCaptionPopup.textContent = caption;
     openModal(imageZoomPopup);
 }
@@ -173,6 +180,8 @@ Promise.all([getUserInfo(), getInitialCards()])
 
         cards.forEach(card => {
             placesList.append(createCard(card, deleteCardHandler, likeHandler, imageClickHandler, userId));
-        }
-        )
+        });
+    })
+    .catch((error) => {
+        console.error(error);
     });
